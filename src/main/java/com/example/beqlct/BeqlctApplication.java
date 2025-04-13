@@ -9,5 +9,4 @@ public class BeqlctApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BeqlctApplication.class, args);
 	}
-
 }
