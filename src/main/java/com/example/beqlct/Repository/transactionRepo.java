@@ -1,7 +1,5 @@
 package com.example.beqlct.Repository;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -21,4 +19,21 @@ public interface transactionRepo  extends JpaRepository<transaction, Integer> {
             "GROUP BY DATE(t.time) " +
             "ORDER BY DATE(t.time)")
     List<Object[]> findTotalAmountByDate(String type, Integer idUser, String startDate);
+
+    @Query(value = "SELECT DATE_FORMAT(STR_TO_DATE(time, '%Y-%m-%d'), '%Y-%m') AS month, SUM(amount) AS total " +
+           "FROM transaction " +
+           "WHERE type = :type AND id_user = :idUser AND STR_TO_DATE(time, '%Y-%m-%d') >= :startDate " +
+           "GROUP BY DATE_FORMAT(STR_TO_DATE(time, '%Y-%m-%d'), '%Y-%m') " +
+           "ORDER BY month DESC", nativeQuery = true)
+    List<Object[]> findTotalAmountByMonth(@Param("type") String type,@Param("idUser") int idUser,@Param("startDate") String startDate);
+
+    @Query(value = "SELECT w.name_wallet AS accountName, SUM(t.amount) AS total " +
+           "FROM transaction t " +
+           "JOIN wallet w ON t.id_wallet = w.id " +
+           "WHERE t.type = :type AND t.id_user = :idUser " +
+           "GROUP BY t.id_wallet, w.name_wallet " +
+           "ORDER BY w.name_wallet", nativeQuery = true)
+    List<Object[]> findTotalAmountByAccount(
+            @Param("type") String type,
+            @Param("idUser") int idUser);
 }

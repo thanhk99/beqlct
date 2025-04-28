@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
+
 @RestController
 @RequestMapping("user")
 public class UserController {
@@ -40,5 +41,4 @@ public class UserController {
         List<wallet> wallet= walletRepo.findByIdUser(entity.getIdUser());
         return ResponseEntity.ok(wallet);
     }
-
 }

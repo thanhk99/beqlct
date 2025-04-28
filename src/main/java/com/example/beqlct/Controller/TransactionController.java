@@ -1,7 +1,6 @@
 package com.example.beqlct.Controller;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,9 +16,6 @@ import com.example.beqlct.Model.transaction;
 import com.example.beqlct.Repository.transactionRepo;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.example.beqlct.Model.transaction;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("transaction")
@@ -54,6 +49,39 @@ public class TransactionController {
         }
         return dailyExpenses;
     }
+    @PostMapping("staticsExpenseMonth")
+    public List<Map<String, Object>> getTotalExpensesMonth(@RequestBody transaction entity) {
+        // Lấy ngày bắt đầu từ 7 tháng trước
+        String startDate = LocalDate.now().minusMonths(7)
+                .withDayOfMonth(1) // Bắt đầu từ ngày đầu tiên của tháng
+                .format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        // Truy vấn tổng chi phí theo tháng từ repository
+        List<Object[]> results = transactionRepo.findTotalAmountByMonth(entity.getType(), entity.getIdUser(), startDate);
+
+        // Chuyển đổi kết quả thành danh sách Map
+        List<Map<String, Object>> monthlyExpenses = new ArrayList<>();
+        for (Object[] result : results) {
+            Map<String, Object> expense = new HashMap<>();
+            expense.put("month", result[0].toString()); // Định dạng YYYY-MM
+            expense.put("total", result[1]);
+            monthlyExpenses.add(expense);
+        }
+
+        return monthlyExpenses;
+    }
     
-    
+    @PostMapping("staticsExpenseWallet")
+    public List<Map<String ,Object>> TotalExpenseWallet(@RequestBody transaction entity) {
+        List<Object[]> results = transactionRepo.findTotalAmountByAccount(entity.getType(), entity.getIdUser());
+        List<Map<String, Object>> expenses = new ArrayList<>();
+            for (Object[] result : results) {
+                Map<String, Object> expense = new HashMap<>();
+                expense.put("accountName", result[0].toString()); // Tên ví
+                expense.put("total", result[1]);
+                expenses.add(expense);
+            }
+        return expenses;
+    }
 }
+
