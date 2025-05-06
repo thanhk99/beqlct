@@ -51,6 +51,16 @@ public class WalletController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy Wallet: " + entity.getId());
         }
     }
+    public void updateBalanceService(int id,float balance){
+        Optional<wallet> walletInfo = walletRepo.findById(id);
+        if(walletInfo.isPresent()){
+            wallet wallet = walletInfo.get();
+            wallet.setBalance(wallet.getBalance() + balance);
+            walletRepo.save(wallet);
+        }else {
+            System.out.println( "Không tìm thấy Wallet: " + id);
+        }
+    }
     @PostMapping("getWallet")
     public ResponseEntity<?> getWallet(@RequestBody wallet entity) {
         Optional<wallet> wallet = walletRepo.findById(entity.getId());

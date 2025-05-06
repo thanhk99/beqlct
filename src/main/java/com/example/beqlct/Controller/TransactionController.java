@@ -11,17 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.example.beqlct.Service.WalletService;
 import com.example.beqlct.Model.transaction;
 import com.example.beqlct.Repository.transactionRepo;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("transaction")
 public class TransactionController {
+
+    @Autowired
+    private WalletService walletService;
+
     @Autowired 
     private transactionRepo transactionRepo;
+
 
     @PostMapping("save")
     public ResponseEntity<?> saveTrans(@RequestBody transaction entity) {
@@ -82,6 +88,45 @@ public class TransactionController {
                 expenses.add(expense);
             }
         return expenses;
+    }
+    @PostMapping("/edit")
+    public ResponseEntity<?> editTrans(@RequestBody transaction entity) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            transaction trans= transactionRepo.findById(entity.getId()).orElse(null);
+            float amountChange= trans.getAmount()-entity.getAmount();
+            trans.setAmount(entity.getAmount());
+            trans.setTime(entity.getTime());
+            transactionRepo.save(trans);
+            response.put("status", "success");
+            System.out.println(trans.getAmount()+":"+entity.getAmount());
+            walletService.updateWalletBalance(entity.getIdWallet(),amountChange);
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            System.out.println(e);
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteTrans(@RequestBody transaction entity) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if(entity.getType().equals("Thu nhập")){
+                walletService.updateWalletBalance(entity.getIdWallet(),entity.getAmount());
+            }
+            else{
+                walletService.updateWalletBalance(entity.getIdWallet(),-entity.getAmount());
+            }
+            transactionRepo.deleteById(entity.getId());
+            response.put("status", "success");
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Lỗi khi xóa giao dịch: " + e.getMessage());
+            System.out.println(e);
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }
 
